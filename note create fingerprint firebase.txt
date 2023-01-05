@@ -1,0 +1,4 @@
+masuk ke folder java binary installation
+Java binary at: C:\Program Files\Android\Android Studio\jre\bin\
+
+keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android -keypass android
