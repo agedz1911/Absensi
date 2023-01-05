@@ -1,6 +1,7 @@
 import 'package:absensi/app/routes/app_pages.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
@@ -20,11 +21,33 @@ class LoginController extends GetxController {
 
             if (credential.user != null){
               if(credential.user!.emailVerified == true) {
-                Get.offAllNamed(Routes.HOME);
+                if(passC.text == "password") {
+                  Get.offAllNamed(Routes.NEW_PASSWORD);
+                } else {
+                  Get.offAllNamed(Routes.HOME);
+                }
               } else {
                 Get.defaultDialog(
                   title: "Belum Verifikasi",
                   middleText: "Akun anda belum Terverifikasi. lakukan verifikasi lewat tautan yang kami kirimkan ke email",
+                  actions: [
+                    OutlinedButton(
+                      onPressed: () => Get.back(),  // tutup dialog 
+                      child: Text("Cancel")
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await credential.user!.sendEmailVerification();
+                          Get.back();
+                          Get.snackbar("Success", "Berhasil mengirim email verifikasi");
+                        } catch (e) {
+                          Get.snackbar("Error", "Tidak dapat mengirim email verifikasi. Silahkan hubungi admin atau CS");
+                        }
+                      },  // kirim ulang email verifikasi 
+                      child: Text("Kirim Ulang")
+                    ),
+                  ],
                 );
               }
             }
