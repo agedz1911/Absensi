@@ -8,7 +8,9 @@ class NewPasswordController extends GetxController {
   FirebaseAuth auth = FirebaseAuth.instance;
 
   void newPassword() async {
+    // kondisi pertama
     if(newPassC.text.isNotEmpty) {
+      // kondisi kedua mengecek agar tidak sama password, save newpassword, logout, auto sign in dengan newpassword
       if(newPassC.text != "password") {
         try {
           String email = auth.currentUser!.email!;
@@ -22,6 +24,7 @@ class NewPasswordController extends GetxController {
           );
 
           Get.offAllNamed(Routes.HOME);
+          
         } on FirebaseAuthException catch (e) {
           if (e.code == 'weak-password') {
           //print('No user found for that email.');
@@ -34,7 +37,9 @@ class NewPasswordController extends GetxController {
       } else {
         Get.snackbar("Error", "password harus berbeda dengan sebelumnya");
       }
-    } else {
+    }
+    // akhir kondisi pertama 
+    else {
       Get.snackbar("Error", "Password baru harus di isi");
     }
   }

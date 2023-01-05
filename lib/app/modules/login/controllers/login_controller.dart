@@ -19,13 +19,16 @@ class LoginController extends GetxController {
             );
             print(credential);
 
+            // kondisi pertama
             if (credential.user != null){
+              // kondisi kedua mengecek user email terverifikasi dan cek default password
               if(credential.user!.emailVerified == true) {
                 if(passC.text == "password") {
                   Get.offAllNamed(Routes.NEW_PASSWORD);
                 } else {
                   Get.offAllNamed(Routes.HOME);
                 }
+              // akhir kondisi kedua
               } else {
                 Get.defaultDialog(
                   title: "Belum Verifikasi",
@@ -51,6 +54,7 @@ class LoginController extends GetxController {
                 );
               }
             }
+            // akhir kondisi pertama
             
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
