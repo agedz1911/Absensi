@@ -5,24 +5,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
+  RxBool isLoading = false.obs;
   TextEditingController emailC = TextEditingController();
   TextEditingController passC = TextEditingController();
 
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  void login() async {
+  Future<void> login() async {
     if (emailC.text.isNotEmpty && passC.text.isNotEmpty) {
+      isLoading.value = true;
       try {
         final credential = await auth.signInWithEmailAndPassword(
                 email: emailC.text, 
                 password: passC.text
             );
-            print(credential);
+            //print(credential);
 
             // kondisi pertama
             if (credential.user != null){
               // kondisi kedua mengecek user email terverifikasi dan cek default password
               if(credential.user!.emailVerified == true) {
+                isLoading.value = false;
                 if(passC.text == "password") {
                   Get.offAllNamed(Routes.NEW_PASSWORD);
                 } else {
@@ -35,7 +38,10 @@ class LoginController extends GetxController {
                   middleText: "Akun anda belum Terverifikasi. lakukan verifikasi lewat tautan yang kami kirimkan ke email",
                   actions: [
                     OutlinedButton(
-                      onPressed: () => Get.back(),  // tutup dialog 
+                      onPressed: () {
+                        isLoading.value = false;
+                        Get.back();
+                      },  // tutup dialog 
                       child: Text("Cancel")
                     ),
                     ElevatedButton(
@@ -44,7 +50,9 @@ class LoginController extends GetxController {
                           await credential.user!.sendEmailVerification();
                           Get.back();
                           Get.snackbar("Success", "Berhasil mengirim email verifikasi");
+                          isLoading.value = false;
                         } catch (e) {
+                          isLoading.value = false;
                           Get.snackbar("Error", "Tidak dapat mengirim email verifikasi. Silahkan hubungi admin atau CS");
                         }
                       },  // kirim ulang email verifikasi 
@@ -55,8 +63,9 @@ class LoginController extends GetxController {
               }
             }
             // akhir kondisi pertama
-            
+            isLoading.value = false;
       } on FirebaseAuthException catch (e) {
+        isLoading.value = false;
         if (e.code == 'user-not-found') {
           //print('No user found for that email.');
           Get.snackbar("Error", "email tidak terdaftar");
@@ -65,6 +74,7 @@ class LoginController extends GetxController {
           Get.snackbar("Error", "Password yang anda masukan salah");
         }
       } catch (e) {
+        isLoading.value = false;
         Get.snackbar("Error", "tidak dapat Login");
       }
     } else {
