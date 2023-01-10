@@ -1,4 +1,5 @@
 import 'package:absensi/app/routes/app_pages.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -16,9 +17,10 @@ class HomeView extends GetView<HomeController> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () => Get.toNamed(Routes.ADD_PEGAWAI),
+            onPressed: () => Get.toNamed(Routes.PROFILE),
             icon: Icon(Icons.person_add),
           ),
+          
         ],
       ),
       body: Center(
