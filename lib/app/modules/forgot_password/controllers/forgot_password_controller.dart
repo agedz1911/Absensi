@@ -13,9 +13,8 @@ class ForgotPasswordController extends GetxController {
       isLoading.value = true;
         try {
         await auth.sendPasswordResetEmail(email: emailC.text);
-        Get.snackbar("SUCCESS", "Berhasil mengirimkan reset password ke email anda");
-        
         Get.back();
+        Get.snackbar("SUCCESS", "Berhasil mengirimkan reset password ke email anda");
       } catch (e) {
         Get.snackbar("ERROR", "Tidak dapat mengirim email reset password");
       } finally {
