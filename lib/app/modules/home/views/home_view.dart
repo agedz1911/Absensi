@@ -18,7 +18,7 @@ class HomeView extends GetView<HomeController> {
         actions: [
           IconButton(
             onPressed: () => Get.toNamed(Routes.PROFILE),
-            icon: Icon(Icons.person_add),
+            icon: Icon(Icons.person),
           ),
           
         ],

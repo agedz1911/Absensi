@@ -1,3 +1,4 @@
+import 'package:absensi/app/routes/app_pages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -18,13 +19,16 @@ class ProfileView extends GetView<ProfileController> {
         stream: controller.streamUser(),
         builder: (context, snap) {
           if(snap.connectionState == ConnectionState.waiting){
-            Center(
+            return Center(
               child: CircularProgressIndicator(),
             );
           }
           if(snap.hasData) {
 
             Map<String, dynamic> user = snap.data!.data()!;
+
+            String defaultImage = "https://ui-avatars.com/api/?name=${user['name']}";
+            
             return ListView(
               padding: EdgeInsets.all(20),
               children: [
@@ -32,7 +36,17 @@ class ProfileView extends GetView<ProfileController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ClipOval(
-                      child: Image.network("https://ui-avatars.com/api/?name=${user['name']}",
+                      child: Container(
+                        height: 100,
+                        width: 100,
+                        child: Image.network(
+                          user["img_profile"] != null
+                          ? user["img_profile"] != ""
+                            ? user["img_profile"]
+                          : defaultImage
+                          : defaultImage,
+                        fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ],
@@ -55,18 +69,21 @@ class ProfileView extends GetView<ProfileController> {
                 ),
                 SizedBox(height: 20),
                 ListTile(
-                  onTap: () {},
+                  onTap: () => Get.toNamed(
+                    Routes.UPDATE_PROFILE, 
+                    arguments: user,
+                  ),
                   leading: Icon(Icons.person),
                   title: Text("Update Profile"),
                 ),
                 ListTile(
-                  onTap: () {},
+                  onTap: () => Get.toNamed(Routes.UPDATE_PASSWORD),
                   leading: Icon(Icons.vpn_key),
                   title: Text("Update Password"),
                 ),
                 if (user["role"] == "admin")
                 ListTile(
-                  onTap: () {},
+                  onTap: () => Get.toNamed(Routes.ADD_PEGAWAI),
                   leading: Icon(Icons.person_add),
                   title: Text("Add Pegawai"),
                 ),
