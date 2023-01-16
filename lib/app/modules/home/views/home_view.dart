@@ -1,46 +1,246 @@
 import 'package:absensi/app/routes/app_pages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../controllers/home_controller.dart';
+import '../../../controllers/page_index_controller.dart';
 
 class HomeView extends GetView<HomeController> {
-  const HomeView({Key? key}) : super(key: key);
+  // import page index controller
+  final pageC = Get.find<PageIndexController>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('HomeView'),
         centerTitle: true,
-        actions: [
+        /* actions: [
           IconButton(
             onPressed: () => Get.toNamed(Routes.PROFILE),
             icon: Icon(Icons.person),
           ),
-          
+        ], */
+      ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: controller.StreamUser(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasData) {
+            // ambil snapshot data berupa maping
+            Map<String, dynamic> user = snapshot.data!.data()!;
+            String defaultImage =
+                "https://ui-avatars.com/api/?name=${user['name']}";
+
+            return ListView(
+              padding: EdgeInsets.all(20),
+              children: [
+                Row(
+                  children: [
+                    ClipOval(
+                      child: Container(
+                        width: 75,
+                        height: 75,
+                        color: Colors.grey[200],
+                        child: Image.network(
+                          user["img_profile"] != null
+                              ? user["img_profile"]
+                              : defaultImage,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Lokasi saat ini",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Container(
+                          width: 250,
+                          child: Text(
+                            user["address"] != null
+                                ? "${user['address']}"
+                                : "Belum ada lokasi",
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.grey[200],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${user['jabatan']}",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        "${user['nip']}",
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "${user['name']}",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.grey[200],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Column(
+                        children: [
+                          Text("Masuk"),
+                          Text("-"),
+                        ],
+                      ),
+                      Container(
+                        width: 2,
+                        height: 40,
+                        color: Colors.grey,
+                      ),
+                      Column(
+                        children: [
+                          Text("keluar"),
+                          Text("-"),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Divider(
+                  color: Colors.grey[300],
+                  thickness: 2,
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Last 5 days",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Get.toNamed(Routes.ALL_ABSENSI),
+                      child: Text("see more"),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Material(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () => Get.toNamed(Routes.DETAIL_ABSENSI),
+                          child: Container(
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Masuk",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      "${DateFormat.yMMMEd().format(DateTime.now())}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                    "${DateFormat.jms().format(DateTime.now())}"),
+                                SizedBox(height: 10),
+                                Text(
+                                  "Keluar",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                    "${DateFormat.jms().format(DateTime.now())}"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          } else {
+            return Center(
+              child: Text("Tidak dapat memuat data user"),
+            );
+          }
+        },
+      ),
+      bottomNavigationBar: ConvexAppBar(
+        //style: TabStyle.fixedCircle,
+        items: [
+          TabItem(icon: Icons.home, title: 'Home'),
+          TabItem(icon: Icons.fingerprint, title: 'Add'),
+          TabItem(icon: Icons.people, title: 'Profile'),
         ],
-      ),
-      body: Center(
-        child: Text(
-          'HomeView is working',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-      floatingActionButton: Obx(
-        () => FloatingActionButton(
-          onPressed: () async {
-            if (controller.isLoading.isFalse) {
-              controller.isLoading.value = true;
-              await FirebaseAuth.instance.signOut();
-              controller.isLoading.value = false;
-              Get.offAllNamed(Routes.LOGIN);
-            }
-          },
-          child: controller.isLoading.isFalse ? Icon(Icons.logout) : CircularProgressIndicator(),
-        ),
+        initialActiveIndex: pageC.pageIndex.value,
+        onTap: (int i) => pageC.changePage(i),
       ),
     );
   }

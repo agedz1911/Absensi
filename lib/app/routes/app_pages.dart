@@ -2,6 +2,10 @@ import 'package:get/get.dart';
 
 import '../modules/add_pegawai/bindings/add_pegawai_binding.dart';
 import '../modules/add_pegawai/views/add_pegawai_view.dart';
+import '../modules/all_absensi/bindings/all_absensi_binding.dart';
+import '../modules/all_absensi/views/all_absensi_view.dart';
+import '../modules/detail_absensi/bindings/detail_absensi_binding.dart';
+import '../modules/detail_absensi/views/detail_absensi_view.dart';
 import '../modules/forgot_password/bindings/forgot_password_binding.dart';
 import '../modules/forgot_password/views/forgot_password_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -27,8 +31,9 @@ class AppPages {
   static final routes = [
     GetPage(
       name: _Paths.HOME,
-      page: () => const HomeView(),
+      page: () => HomeView(),
       binding: HomeBinding(),
+      transition: Transition.fadeIn,
     ),
     GetPage(
       name: _Paths.ADD_PEGAWAI,
@@ -52,18 +57,29 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.PROFILE,
-      page: () => const ProfileView(),
+      page: () => ProfileView(),
       binding: ProfileBinding(),
+      transition: Transition.fadeIn,
     ),
     GetPage(
       name: _Paths.UPDATE_PROFILE,
-      page: () =>  UpdateProfileView(),
+      page: () => UpdateProfileView(),
       binding: UpdateProfileBinding(),
     ),
     GetPage(
       name: _Paths.UPDATE_PASSWORD,
       page: () => const UpdatePasswordView(),
       binding: UpdatePasswordBinding(),
+    ),
+    GetPage(
+      name: _Paths.DETAIL_ABSENSI,
+      page: () => const DetailAbsensiView(),
+      binding: DetailAbsensiBinding(),
+    ),
+    GetPage(
+      name: _Paths.ALL_ABSENSI,
+      page: () => const AllAbsensiView(),
+      binding: AllAbsensiBinding(),
     ),
   ];
 }

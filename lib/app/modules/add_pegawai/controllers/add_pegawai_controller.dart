@@ -8,6 +8,7 @@ class AddPegawaiController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool isLoadingAddPegawai = false.obs;
   TextEditingController nameC = TextEditingController();
+  TextEditingController jobC = TextEditingController();
   TextEditingController nipC = TextEditingController();
   TextEditingController emailC = TextEditingController();
   TextEditingController passAdminC = TextEditingController();
@@ -38,8 +39,9 @@ class AddPegawaiController extends GetxController {
             "nip": nipC.text,
             "name": nameC.text,
             "email": emailC.text,
+            "jabatan": jobC.text,
             "uid": uid,
-            "rolde" : "pegawai",
+            "role" : "pegawai",
             "createdAt": DateTime.now().toIso8601String(),
           });
 
@@ -86,6 +88,7 @@ class AddPegawaiController extends GetxController {
 
   Future<void> addPegawai() async {
     if (nameC.text.isNotEmpty &&
+        jobC.text.isNotEmpty &&
         nipC.text.isNotEmpty &&
         emailC.text.isNotEmpty) {
       isLoading.value = true;
@@ -129,7 +132,7 @@ class AddPegawaiController extends GetxController {
         ],
       );
     } else {
-      Get.snackbar("Error", "NIP, Nama, dan Email harus diisi");
+      Get.snackbar("Error", "NIP, Nama, Jabatan, dan Email harus diisi");
     }
   }
 }
