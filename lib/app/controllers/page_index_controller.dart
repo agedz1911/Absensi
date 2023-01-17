@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:intl/intl.dart';
 
 class PageIndexController extends GetxController {
   RxInt pageIndex = 0.obs;
@@ -16,7 +17,7 @@ class PageIndexController extends GetxController {
 
     switch (i) {
       case 1:
-        print("halaman absen");
+        print("ABSENSI");
         //Position position = await determinePosition();
         Map<String, dynamic> dataResponse = await determinePosition();
         if(dataResponse["error"] != true) {
@@ -28,10 +29,18 @@ class PageIndexController extends GetxController {
           String address = "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}";
           /* print(placemarks[0].name);
           print(placemarks[0].street); */
-          
           // update 
-          await updatePosition(position, address);
-          Get.snackbar("${dataResponse['message']}", "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}");
+          await updatePosition(position, address,);
+ 
+          // cek distance area position
+          double distance = Geolocator.distanceBetween(-6.3521563, 106.5756235, position.latitude, position.longitude);
+
+          // lemparan presensi
+          await presensi(position, address, distance);
+
+          Get.snackbar("Succcess", "anda telah berhasil melakukan absensi");
+          // snackbar koordinat jadi alamat
+          //Get.snackbar("${dataResponse['message']}", "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}");
         } else {
           Get.snackbar("Error", dataResponse["message"]);
         }
@@ -43,6 +52,79 @@ class PageIndexController extends GetxController {
       default:
         pageIndex.value = i;
         Get.offAllNamed(Routes.HOME);
+    }
+  }
+
+
+  Future<void> presensi(Position position, String address, double distance) async {
+    // get current user
+    String uid = await auth.currentUser!.uid;
+
+    CollectionReference<Map<String, dynamic>> dbAbsensi = await firestore.collection("pegawai").doc(uid).collection("absensi");
+
+    QuerySnapshot<Map<String, dynamic>> snapAbsensi = await dbAbsensi.get();
+
+    DateTime now = DateTime.now();
+    String todayDocID = DateFormat.yMd().format(now).replaceAll("/", "-");
+    //print(todayDocID);
+
+    String status = "Diluar Area";
+
+    // untuk mengelola distance
+    if (distance <= 200) {
+      status = "Didalam Area";
+    } 
+    
+    if(snapAbsensi.docs.length == 0 ) {
+      // belum pernah absen dan set absen masuk
+      await dbAbsensi.doc(todayDocID).set({
+        "date" : now.toIso8601String(),
+        "masuk" : {
+          "date" : now.toIso8601String(),
+          "lat" : position.latitude,
+          "long" : position.longitude,
+          "address" : address,
+          "status" : status,
+          "distance" : distance,
+        }
+      });
+    } else {
+      // sudah absen => cek terlebih dahulu udah masuk/keluar
+      DocumentSnapshot<Map<String, dynamic>> todayDoc = await dbAbsensi.doc(todayDocID).get();
+
+      if(todayDoc.exists == true) {
+        // absen keluar atau absen masuk untuk hari berkutnya
+        Map<String, dynamic>? dataAbsenToday = todayDoc.data();
+        if(dataAbsenToday?["keluar"] != null) {
+          // sudah absen cekin dan cekout
+          Get.snackbar("Success", "anda telah absensi hari ini");
+        } else {
+          // absen keluar
+          await dbAbsensi.doc(todayDocID).update({
+          "keluar" : {
+            "date" : now.toIso8601String(),
+            "lat" : position.latitude,
+            "long" : position.longitude,
+            "address" : address,
+            "status" : status,
+            "distance" : distance,
+            }
+          });
+        }
+      } else {
+        // absen masuk
+        await dbAbsensi.doc(todayDocID).set({
+        "date" : now.toIso8601String(),
+        "masuk" : {
+          "date" : now.toIso8601String(),
+          "lat" : position.latitude,
+          "long" : position.longitude,
+          "address" : address,
+          "status" : status,
+          "distance" : distance,
+          }
+        });
+      }
     }
   }
 
