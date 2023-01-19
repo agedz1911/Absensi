@@ -1,6 +1,7 @@
 import 'package:absensi/app/routes/app_pages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -20,25 +21,30 @@ class PageIndexController extends GetxController {
         print("ABSENSI");
         //Position position = await determinePosition();
         Map<String, dynamic> dataResponse = await determinePosition();
-        if(dataResponse["error"] != true) {
+        if (dataResponse["error"] != true) {
           // ambil dari update position
           Position position = dataResponse["position"];
-          
-          //translate koordinat 
-          List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-          String address = "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}";
+
+          //translate koordinat
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              position.latitude, position.longitude);
+          String address =
+              "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}";
           /* print(placemarks[0].name);
           print(placemarks[0].street); */
-          // update 
-          await updatePosition(position, address,);
- 
+          // update
+          await updatePosition(
+            position,
+            address,
+          );
+
           // cek distance area position
-          double distance = Geolocator.distanceBetween(-6.3521563, 106.5756235, position.latitude, position.longitude);
+          double distance = Geolocator.distanceBetween(
+              -6.3521563, 106.5756235, position.latitude, position.longitude);
 
           // lemparan presensi
           await presensi(position, address, distance);
 
-          Get.snackbar("Succcess", "anda telah berhasil melakukan absensi");
           // snackbar koordinat jadi alamat
           //Get.snackbar("${dataResponse['message']}", "${placemarks[0].street} , ${placemarks[0].subAdministrativeArea}");
         } else {
@@ -55,12 +61,13 @@ class PageIndexController extends GetxController {
     }
   }
 
-
-  Future<void> presensi(Position position, String address, double distance) async {
+  Future<void> presensi(
+      Position position, String address, double distance) async {
     // get current user
     String uid = await auth.currentUser!.uid;
 
-    CollectionReference<Map<String, dynamic>> dbAbsensi = await firestore.collection("pegawai").doc(uid).collection("absensi");
+    CollectionReference<Map<String, dynamic>> dbAbsensi =
+        await firestore.collection("pegawai").doc(uid).collection("absensi");
 
     QuerySnapshot<Map<String, dynamic>> snapAbsensi = await dbAbsensi.get();
 
@@ -73,57 +80,114 @@ class PageIndexController extends GetxController {
     // untuk mengelola distance
     if (distance <= 200) {
       status = "Didalam Area";
-    } 
-    
-    if(snapAbsensi.docs.length == 0 ) {
-      // belum pernah absen dan set absen masuk
-      await dbAbsensi.doc(todayDocID).set({
-        "date" : now.toIso8601String(),
-        "masuk" : {
-          "date" : now.toIso8601String(),
-          "lat" : position.latitude,
-          "long" : position.longitude,
-          "address" : address,
-          "status" : status,
-          "distance" : distance,
-        }
-      });
+    }
+
+    if (snapAbsensi.docs.length == 0) {
+      await Get.defaultDialog(
+        title: "Validasi Absensi",
+        middleText:
+            "Apakah anda yakin akan mengisi daftar hadir (MASUK) sekarang ?",
+        actions: [
+          OutlinedButton(
+            onPressed: () => Get.back(),
+            child: Text("CANCEL"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // belum pernah absen dan set absen masuk
+              await dbAbsensi.doc(todayDocID).set({
+                "date": now.toIso8601String(),
+                "masuk": {
+                  "date": now.toIso8601String(),
+                  "lat": position.latitude,
+                  "long": position.longitude,
+                  "address": address,
+                  "status": status,
+                  "distance": distance,
+                }
+              });
+              Get.back();
+              Get.snackbar("Succcess", "anda telah berhasil mengisi daftar hadir (MASUK)");
+            },
+            child: Text("YES"),
+          ),
+        ],
+      );
+      
     } else {
       // sudah absen => cek terlebih dahulu udah masuk/keluar
-      DocumentSnapshot<Map<String, dynamic>> todayDoc = await dbAbsensi.doc(todayDocID).get();
+      DocumentSnapshot<Map<String, dynamic>> todayDoc =
+          await dbAbsensi.doc(todayDocID).get();
 
-      if(todayDoc.exists == true) {
+      if (todayDoc.exists == true) {
         // absen keluar atau absen masuk untuk hari berkutnya
         Map<String, dynamic>? dataAbsenToday = todayDoc.data();
-        if(dataAbsenToday?["keluar"] != null) {
+        if (dataAbsenToday?["keluar"] != null) {
           // sudah absen cekin dan cekout
-          Get.snackbar("Success", "anda telah absensi hari ini");
+          Get.snackbar("Peringatan", "anda telah absen masuk & keluar hari ini. Tidak dapat mengubah data kembali");
         } else {
           // absen keluar
-          await dbAbsensi.doc(todayDocID).update({
-          "keluar" : {
-            "date" : now.toIso8601String(),
-            "lat" : position.latitude,
-            "long" : position.longitude,
-            "address" : address,
-            "status" : status,
-            "distance" : distance,
-            }
-          });
+          await Get.defaultDialog(
+            title: "Validasi Absensi",
+            middleText:
+                "Apakah anda yakin akan mengisi daftar hadir (KELUAR) sekarang ?",
+            actions: [
+              OutlinedButton(
+                onPressed: () => Get.back(), 
+                child: Text("CANCEL"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await dbAbsensi.doc(todayDocID).update({
+                    "keluar": {
+                      "date": now.toIso8601String(),
+                      "lat": position.latitude,
+                      "long": position.longitude,
+                      "address": address,
+                      "status": status,
+                      "distance": distance,
+                    }
+                  });
+                  Get.back();
+                  Get.snackbar("Succcess", "anda telah berhasil mengisi daftar hadir (KELUAR)");
+                }, 
+                child: Text("YES"),
+              ),
+            ]
+          );
+          
         }
       } else {
-        // absen masuk
-        await dbAbsensi.doc(todayDocID).set({
-        "date" : now.toIso8601String(),
-        "masuk" : {
-          "date" : now.toIso8601String(),
-          "lat" : position.latitude,
-          "long" : position.longitude,
-          "address" : address,
-          "status" : status,
-          "distance" : distance,
-          }
-        });
+        // absen masuk hari ini dan data tidak kosong 
+        await Get.defaultDialog(
+          title: "Validasi Absensi",
+        middleText:
+            "Apakah anda yakin akan mengisi daftar hadir (MASUK) sekarang ?",
+        actions: [
+          OutlinedButton(
+            onPressed: () => Get.back(), 
+            child: Text("CANCEL"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await dbAbsensi.doc(todayDocID).set({
+                "date": now.toIso8601String(),
+                "masuk": {
+                  "date": now.toIso8601String(),
+                  "lat": position.latitude,
+                  "long": position.longitude,
+                  "address": address,
+                  "status": status,
+                  "distance": distance,
+                }
+              });
+              Get.back();
+              Get.snackbar("Succcess", "anda telah berhasil mengisi daftar hadir (MASUK)");
+            }, 
+            child: Text("YES"),
+          ),
+        ]
+        );
       }
     }
   }
@@ -131,19 +195,19 @@ class PageIndexController extends GetxController {
   Future<void> updatePosition(Position position, String address) async {
     // get current user
     String uid = await auth.currentUser!.uid;
-    
+
     // update data gps ke firestore
     await firestore.collection("pegawai").doc(uid).update({
-      "position" : {
-        "latitude" : position.latitude,
-        "longitude" : position.longitude,
+      "position": {
+        "latitude": position.latitude,
+        "longitude": position.longitude,
       },
-      "address" : address,
+      "address": address,
     });
   }
 
   // hasil modifikasi dari aslinya
-  Future<Map<String,dynamic>> determinePosition() async {
+  Future<Map<String, dynamic>> determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -155,10 +219,9 @@ class PageIndexController extends GetxController {
       // App to enable the location services.
       //return Future.error('Location services are disabled.');
       return {
-        "message" : "Layanan GPS tidak diaktifkan.",
+        "message": "Layanan GPS tidak diaktifkan.",
         "error": true,
-        };
-      
+      };
     }
 
     permission = await Geolocator.checkPermission();
@@ -172,8 +235,8 @@ class PageIndexController extends GetxController {
         // your App should show an explanatory UI now.
         //return Future.error('Location permissions are denied');
         return {
-        "message" : "Izin lokasi ditolak.",
-        "error": true,
+          "message": "Izin lokasi ditolak.",
+          "error": true,
         };
       }
     }
@@ -181,7 +244,8 @@ class PageIndexController extends GetxController {
     if (permission == LocationPermission.deniedForever) {
       // Permissions are denied forever, handle appropriately.
       return {
-        "message" : "Izin lokasi ditolak secara permanen, silahkan ubah setting lokasi anda",
+        "message":
+            "Izin lokasi ditolak secara permanen, silahkan ubah setting lokasi anda",
         "error": true,
       };
       //return Future.error('Location permissions are permanently denied, we cannot request permissions.');
@@ -191,9 +255,9 @@ class PageIndexController extends GetxController {
     // continue accessing the position of the device.
     Position position = await Geolocator.getCurrentPosition();
     return {
-      "position" : position,
-      "message" : "success mendapatkan posisi device",
+      "position": position,
+      "message": "success mendapatkan posisi device",
       "error": false,
-      };
+    };
   }
 }
