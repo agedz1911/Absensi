@@ -202,7 +202,8 @@ class HomeView extends GetView<HomeController> {
                             borderRadius: BorderRadius.circular(20),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(20),
-                              onTap: () => Get.toNamed(Routes.DETAIL_ABSENSI),
+                              // lempar data dengan argument
+                              onTap: () => Get.toNamed(Routes.DETAIL_ABSENSI, arguments: data,),
                               child: Container(
                                 padding: EdgeInsets.all(20),
                                 decoration: BoxDecoration(
