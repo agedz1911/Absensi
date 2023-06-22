@@ -13,24 +13,24 @@ dependencies:
   cloud_firestore: 4.3.1
   firebase_storage: 11.0.10
   image_picker: 0.8.6
-  convex_bottom_bar: 3.1.0+1
   intl: 0.17.0
   geolocator: 9.0.2
   geocoding: 2.0.5
   syncfusion_flutter_datepicker: 20.4.44
+  convex_bottom_bar: 3.2.0
   flutter: 
     sdk: flutter
 
-flutter_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/icon.png"
-
 dev_dependencies: 
-  flutter_launcher_icons: "^0.11.0"
+  flutter_launcher_icons: ^0.11.0
   flutter_lints: ^2.0.0
   flutter_test: 
     sdk: flutter
+
+flutter_icons: 
+  android: launcher_icon
+  image_path: assets/icon.png
+  ios: true
 
 flutter: 
   uses-material-design: true

@@ -20,7 +20,7 @@ class LoginView extends GetView<LoginController> {
           TextField(
             controller: controller.emailC,
             autocorrect: false,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "email",
               border: OutlineInputBorder(),
             ),

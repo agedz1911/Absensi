@@ -175,12 +175,12 @@ class HomeView extends GetView<HomeController> {
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: controller.StreamLastAbsen(),
                   builder: (context, snapshot2) {
                     if (snapshot2.connectionState == ConnectionState.waiting) {
-                      return Center(
+                      return const Center(
                         child: CircularProgressIndicator(),
                       );
                     }
